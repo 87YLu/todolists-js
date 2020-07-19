@@ -173,7 +173,8 @@ body {
 
 /* 登录注册框 */
 .logon-sign {
-  display: none;
+  /* display: none; */
+  display: flex;
   flex-direction: column;
   align-items: center;
   position: fixed;
@@ -185,6 +186,7 @@ body {
   height: 450px;
   background-color: #5261A0;
 }
+
 .logon-sign .close {
   position: absolute;
   top: 0;
@@ -194,6 +196,7 @@ body {
   text-align: center;
   line-height: 30px;
   font-size: 25px;
+  cursor: pointer;
 }
 
 .logon-sign .title {
@@ -226,6 +229,7 @@ input::-webkit-input-placeholder {
   position: absolute;
   bottom: 145px;
   right: 50px;
+  cursor: pointer;
 }
 
 .logon-sign .sign-in {
@@ -236,6 +240,20 @@ input::-webkit-input-placeholder {
   width: 80%;
   height: 50px;
   background-color: #313B66;
+  cursor: pointer;
+}
+
+.logon-sign .mes {
+  display: none;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80%;
+  height: 50px;
+  background-color: #3C3C42;
 }
 
 /* 右边部分 */
