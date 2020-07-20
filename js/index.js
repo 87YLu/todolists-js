@@ -60,11 +60,21 @@ userBtn.onclick = () => {
 document.querySelector(".control-close").onclick = () => {
   userControl.style.display = "none";
 };
+document.querySelector(".zhanghu").innerHTML = localStorage.getItem("sign-users") || "";
+
+// 清除账号密码框内容
+let zhanghao = document.querySelector('.zhanghao');
+let mima = document.querySelector('.mima');
+const clearData = () => {
+  zhanghao.value = '';
+  mima.value = '';
+};
 
 // 登陆注册框
 document.querySelector(".add-user").onclick = () => {
   document.querySelector(".logon-sign").style.display = "flex";
   userControl.style.display = "none";
+  clearData();
 };
 
 document.querySelector(".logon-sign .close").onclick = () => {
@@ -72,16 +82,9 @@ document.querySelector(".logon-sign .close").onclick = () => {
 };
 
 //注册登录
-let zhanghao = document.querySelector('.zhanghao');
-let mima = document.querySelector('.mima');
 let logoneBtn = document.querySelector(".logon");
 let signInBtn = document.querySelector(".sign-in");
 let mes = document.querySelector(".mes");
-
-const clearData = () => {
-  zhanghao.value = '';
-  mima.value = '';
-};
 
 logoneBtn.onclick = () => {
   if (logoneBtn.innerHTML == '注册') {
@@ -120,8 +123,27 @@ const setNameArr = () => {
     nameArr.push(arr[i].username);
   }
   return nameArr;
-
 }
+// 注销功能和用户切换功能
+document.querySelector(".zhanghu").onclick = (e) => {
+  // 注销功能
+  if (e.target.nodeName.toLowerCase() == "span") {
+    let arr = localStorage.getItem("sign-users").replace(`<li>${e.target.parentNode.innerHTML}</li>`, "");
+    localStorage.setItem("sign-users", arr);
+    document.querySelector(".zhanghu").innerHTML = arr;
+    if (e.target.parentNode.innerHTML.replace("<span>注销</span>","") == localStorage.getItem("now-user")) {
+      userBtn.innerHTML = "未登录";
+      localStorage.removeItem("now-user");
+    }
+  }
+  // 用户切换功能
+  if (e.target.nodeName.toLowerCase() == "li") {
+    userBtn.innerHTML = e.target.innerHTML.replace("<span>注销</span>", "");
+    localStorage.setItem("now-user", e.target.innerHTML.replace("<span>注销</span>", ""));
+    userControl.style.display = "none";
+  }
+}
+
 // 按钮函数
 signInBtn.onclick = () => {
   // 验证用户名
@@ -150,12 +172,17 @@ signInBtn.onclick = () => {
           setMes("账号不存在！");
         } else {
           let arr = setLocalArr();
+          // 登录成功时
           if (parseInt(mima.value, 10) == parseInt(arr[index].password, 10)) {
+            userBtn.innerHTML = zhanghao.value;
             localStorage.setItem("now-user", zhanghao.value);
             document.querySelector(".logon-sign").style.display = "none";
-            userBtn.innerHTML = zhanghao.value;
-            console.log(userBtn.innerHTML);
-          } else {
+            let li = document.createElement("li");
+            li.innerHTML = `${zhanghao.value}<span>注销</span>`;
+            document.querySelector(".zhanghu").appendChild(li);
+            localStorage.setItem("sign-users", document.querySelector(".zhanghu").innerHTML);
+          } // 登录失败时
+          else {
             setMes("密码错误！");
           }
         }
