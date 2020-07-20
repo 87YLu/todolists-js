@@ -148,12 +148,21 @@ document.querySelector(".zhanghu").onclick = (e) => {
     localStorage.setItem("now-user", nowUser);
     userControl.style.display = "none";
     changeList();
-    if (localStorage.getItem(`${nowUser}-lists`) != null) {
+    // 更新now-list
+    if (localStorage.getItem(`${nowUser}-lists`) != null && localStorage.getItem(`${nowUser}-lists`) != "") {
       let arr = localStorage.getItem(`${nowUser}-lists`).split(`<li class="current"><i>|</i><span>`)[1].split(`</span>`)[0];
       localStorage.setItem("now-list", `${nowUser}-${arr}`);
+    } else {
+      localStorage.setItem("now-list", ``);
+    }
+    // 去除now-list
+    if (localStorage.getItem(`${nowUser}-lists`) == "") {
+      localStorage.removeItem("now-list")
     }
     if (localStorage.getItem("now-list") != null) {
       document.querySelector(".nowlist-title").innerHTML = localStorage.getItem("now-list").replace(`${nowUser}-`, "");
+    } else {
+      document.querySelector(".nowlist-title").innerHTML = "";
     }
   }
 }
@@ -239,16 +248,27 @@ signInBtn.onclick = () => {
   }
 };
 
-// 清单切换
-if (localStorage.getItem("now-list") != null) {
+// 清单初始化
+if (localStorage.getItem("now-list") != null && localStorage.getItem("now-list") != "") {
   document.querySelector(".nowlist-title").innerHTML = localStorage.getItem("now-list").replace(`${localStorage.getItem("now-user")}-`, "");
 } else {
   document.querySelector(".nowlist-title").innerHTML = "";
 }
 lists.innerHTML = localStorage.getItem(`${localStorage.getItem("now-user")}-lists`) || "";
+// 阻止右键行为
 document.oncontextmenu = function (e) {
   e.preventDefault();
 };
+
+// 隐藏删除键
+const hideDelete = () => {
+  if (lists.children.length > 0) {
+    for (let i = 0, len = lists.children.length; i < len; i++) {
+      lists.children[i].children[2].style.display = "none";
+    }
+  }
+}
+
 lists.addEventListener("mousedown", (e) => {
   if (e.target.nodeName.toLowerCase() != "ul") {
     if (e.target.nodeName.toLowerCase() != "input") {
@@ -267,7 +287,6 @@ lists.addEventListener("mousedown", (e) => {
           temp.removeChild(e.target.parentNode);
           if (temp.children.length > 0) {
             temp.children[0].className = "current";
-            console.log(temp.children[0]);
             document.querySelector(".nowlist-title").innerHTML = temp.children[0].innerHTML.replace(`<i>|</i><span>`, "").replace(`</span><em>删除</em>`, "");
           } else {
             document.querySelector(".nowlist-title").innerHTML = "";
@@ -285,8 +304,10 @@ lists.addEventListener("mousedown", (e) => {
       // 右键
       if (e.button == 2) {
         if (e.target.nodeName.toLowerCase() == "li") {
+          hideDelete();
           e.target.children[2].style.display = "block";
         } else {
+          hideDelete();
           e.target.parentNode.children[2].style.display = "block";
         }
       }
@@ -294,26 +315,42 @@ lists.addEventListener("mousedown", (e) => {
   }
 })
 
+// 提取清单列表
+const setUserListsArr = () => {
+  let arr = lists.innerText.split("\n");
+  arr.splice(arr.indexOf("|"), 1);
+  return arr;
+}
+
 // 创建清单部分
-document.querySelector(".create-list").onclick = () => {
+document.querySelector(".create-list").onclick = (e) => {
+  e.stopPropagation();
   if (localStorage.getItem("now-user") != null) {
     let li = document.createElement("li");
     li.innerHTML = `<input type="text">`;
     lists.appendChild(li);
     let temp = lists.children[lists.children.length - 1].children[0];
     temp.focus();
-    if (temp.focus()) {
-      window.event.stopPropagation();
-    }
     temp.onblur = () => {
-      if (temp.value == "") {
+      if (temp.value.trim() == "") {
         alert("请输入清单名称");
         lists.removeChild(lists.children[lists.children.length - 1]);
       } else {
-        lists.children[lists.children.length - 1].innerHTML = `<i>|</i><span>${temp.value}</span><em>删除</em>`;
-        localStorage.setItem(`${localStorage.getItem("now-user")}-lists`, lists.innerHTML)
-        if (lists.children.length == 1) {
-          lists.children[0].className = "current";
+        if (setUserListsArr().length > 8) {
+          alert("清单数量到达上限");
+          lists.removeChild(lists.children[lists.children.length - 1]);
+        } else if (setUserListsArr().includes(temp.value.trim())) {
+          alert("请勿重复命名清单");
+          lists.removeChild(lists.children[lists.children.length - 1]);
+        } else {
+          lists.children[lists.children.length - 1].innerHTML = `<i>|</i><span>${temp.value.trim()}</span><em>删除</em>`;
+          for (let i = 0, len = lists.children.length; i < len; i++) {
+            lists.children[i].className = "";
+          }
+          lists.children[lists.children.length - 1].className = "current";
+          localStorage.setItem("now-list", `${localStorage.getItem("now-user")}-${temp.value.trim()}`);
+          localStorage.setItem(`${localStorage.getItem("now-user")}-lists`, lists.innerHTML);
+          document.querySelector(".nowlist-title").innerHTML = localStorage.getItem("now-list").replace(`${localStorage.getItem("now-user")}-`, "");
         }
       }
     }
@@ -323,18 +360,25 @@ document.querySelector(".create-list").onclick = () => {
   }
 }
 
-
-
-
-
-// 设置清单内容部分
+// 添加清单项
+let addItem = document.querySelector(".add-item");
 let nowListCon = document.querySelector(".nowlist-con");
-nowListCon.onclick = (e) => {
-  if (e.target.children[0].checked == true) {
-    e.target.innerHTML = `<input type="checkbox">${e.target.innerHTML.replace(`<input type="checkbox"><del>`, "").replace(`</del>`, "")}`;
-    e.target.children[0].checked = false;
-  } else {
-    e.target.innerHTML = `<input type="checkbox"><del>${e.target.innerHTML.replace(`<input type="checkbox">`, "")}</del>`;
-    e.target.children[0].checked = true;
+
+addItem.onclick = () => {
+  addItem.innerHTML = `<span>+</span><input type="text">`;
+  addItem.children[1].focus();
+  addItem.style.backgroundColor = "#282829";
+
+
+  addItem.children[1].onblur = () => {
+    if (addItem.children[1].value == "") {
+      alert("请输入内容");
+    } else {
+      let li = document.createElement("li");
+      li.innerHTML = `<input type="checkbox">${addItem.children[1].value}`;
+      nowListCon.appendChild(li);
+    }
+    addItem.innerHTML = `<span>+</span>添加任务`;
+    addItem.style.backgroundColor = "##1F1F20";
   }
 }
