@@ -126,6 +126,8 @@ const setNameArr = () => {
 }
 // 更换清单内容函数
 let lists = document.querySelector(".lists");
+let nowListTitle = document.querySelector(".nowlist-title");
+
 const changeList = () => {
   lists.innerHTML = localStorage.getItem(`${localStorage.getItem("now-user")}-lists`) || "";
 }
@@ -140,6 +142,9 @@ document.querySelector(".zhanghu").onclick = (e) => {
       userBtn.innerHTML = "未登录";
       localStorage.removeItem("now-user");
     }
+    lists.innerHTML = "";
+    localStorage.setItem("now-list", "");
+    nowListTitle.innerHTML = "";
   }
   // 用户切换功能
   if (e.target.nodeName.toLowerCase() == "li") {
@@ -160,9 +165,9 @@ document.querySelector(".zhanghu").onclick = (e) => {
       localStorage.removeItem("now-list")
     }
     if (localStorage.getItem("now-list") != null) {
-      document.querySelector(".nowlist-title").innerHTML = localStorage.getItem("now-list").replace(`${nowUser}-`, "");
+      nowListTitle.innerHTML = localStorage.getItem("now-list").replace(`${nowUser}-`, "");
     } else {
-      document.querySelector(".nowlist-title").innerHTML = "";
+      nowListTitle.innerHTML = "";
     }
   }
 }
@@ -205,6 +210,10 @@ signInBtn.onclick = () => {
             document.querySelector(".zhanghu").appendChild(li);
             localStorage.setItem("sign-users", document.querySelector(".zhanghu").innerHTML);
             changeList();
+            // 获取登陆时的当前清单
+            let arr = localStorage.getItem(`${zhanghao.value}-lists`).split(`<li class="current"><i>|</i><span>`)[1].split("</span>")[0];
+            localStorage.setItem("now-list", `${zhanghao.value}-${arr}`);
+            nowListTitle.innerHTML = arr;
           } // 登录失败时
           else {
             setMes("密码错误！");
@@ -250,9 +259,9 @@ signInBtn.onclick = () => {
 
 // 清单初始化
 if (localStorage.getItem("now-list") != null && localStorage.getItem("now-list") != "") {
-  document.querySelector(".nowlist-title").innerHTML = localStorage.getItem("now-list").replace(`${localStorage.getItem("now-user")}-`, "");
+  nowListTitle.innerHTML = localStorage.getItem("now-list").replace(`${localStorage.getItem("now-user")}-`, "");
 } else {
-  document.querySelector(".nowlist-title").innerHTML = "";
+  nowListTitle.innerHTML = "";
 }
 lists.innerHTML = localStorage.getItem(`${localStorage.getItem("now-user")}-lists`) || "";
 // 阻止右键行为
@@ -281,24 +290,24 @@ lists.addEventListener("mousedown", (e) => {
         if (e.target.nodeName.toLowerCase() == "li") {
           e.target.className = "current";
           e.target.children[2].style.display = "none";
-          document.querySelector(".nowlist-title").innerHTML = e.target.innerHTML.replace(`<i>|</i><span>`, "").replace(`</span><em>删除</em>`, "");
+          nowListTitle.innerHTML = e.target.innerHTML.replace(`<i>|</i><span>`, "").replace(`</span><em>删除</em>`, "");
         } else if (e.target.nodeName.toLowerCase() == "em") {
           let temp = e.target.parentNode.parentNode;
           temp.removeChild(e.target.parentNode);
           if (temp.children.length > 0) {
             temp.children[0].className = "current";
-            document.querySelector(".nowlist-title").innerHTML = temp.children[0].innerHTML.replace(`<i>|</i><span>`, "").replace(`</span><em>删除</em>`, "");
+            nowListTitle.innerHTML = temp.children[0].innerHTML.replace(`<i>|</i><span>`, "").replace(`</span><em>删除</em>`, "");
           } else {
-            document.querySelector(".nowlist-title").innerHTML = "";
+            nowListTitle.innerHTML = "";
           }
         } else {
           e.target.parentNode.className = "current";
           e.target.parentNode.children[2].style.display = "none";
-          document.querySelector(".nowlist-title").innerHTML = e.target.parentNode.innerHTML.replace(`<i>|</i><span>`, "").replace(`</span><em>删除</em>`, "");
+          nowListTitle.innerHTML = e.target.parentNode.innerHTML.replace(`<i>|</i><span>`, "").replace(`</span><em>删除</em>`, "");
         }
         // 设置目前的清单以及所在的账号
         localStorage.setItem(`${localStorage.getItem("now-user")}-lists`, lists.innerHTML);
-        localStorage.setItem("now-list", `${userBtn.innerHTML}-${document.querySelector(".nowlist-title").innerHTML.replace(`<em style="display: none;">删除</em>`, "")}`)
+        localStorage.setItem("now-list", `${userBtn.innerHTML}-${nowListTitle.innerHTML.replace(`<em style="display: none;">删除</em>`, "")}`)
 
       }
       // 右键
@@ -350,7 +359,7 @@ document.querySelector(".create-list").onclick = (e) => {
           lists.children[lists.children.length - 1].className = "current";
           localStorage.setItem("now-list", `${localStorage.getItem("now-user")}-${temp.value.trim()}`);
           localStorage.setItem(`${localStorage.getItem("now-user")}-lists`, lists.innerHTML);
-          document.querySelector(".nowlist-title").innerHTML = localStorage.getItem("now-list").replace(`${localStorage.getItem("now-user")}-`, "");
+          nowListTitle.innerHTML = localStorage.getItem("now-list").replace(`${localStorage.getItem("now-user")}-`, "");
         }
       }
     }
