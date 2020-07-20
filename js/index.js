@@ -124,6 +124,11 @@ const setNameArr = () => {
   }
   return nameArr;
 }
+// 更换清单内容函数
+let lists = document.querySelector(".lists");
+const changeList = () => {
+  lists.innerHTML = localStorage.getItem(`${localStorage.getItem("now-user")}-lists`) || "";
+}
 // 注销功能和用户切换功能
 document.querySelector(".zhanghu").onclick = (e) => {
   // 注销功能
@@ -131,16 +136,25 @@ document.querySelector(".zhanghu").onclick = (e) => {
     let arr = localStorage.getItem("sign-users").replace(`<li>${e.target.parentNode.innerHTML}</li>`, "");
     localStorage.setItem("sign-users", arr);
     document.querySelector(".zhanghu").innerHTML = arr;
-    if (e.target.parentNode.innerHTML.replace("<span>注销</span>","") == localStorage.getItem("now-user")) {
+    if (e.target.parentNode.innerHTML.replace("<span>注销</span>", "") == localStorage.getItem("now-user")) {
       userBtn.innerHTML = "未登录";
       localStorage.removeItem("now-user");
     }
   }
   // 用户切换功能
   if (e.target.nodeName.toLowerCase() == "li") {
-    userBtn.innerHTML = e.target.innerHTML.replace("<span>注销</span>", "");
-    localStorage.setItem("now-user", e.target.innerHTML.replace("<span>注销</span>", ""));
+    let nowUser = e.target.innerHTML.replace("<span>注销</span>", "");
+    userBtn.innerHTML = nowUser;
+    localStorage.setItem("now-user", nowUser);
     userControl.style.display = "none";
+    changeList();
+    if (localStorage.getItem(`${nowUser}-lists`) != null) {
+      let arr = localStorage.getItem(`${nowUser}-lists`).split(`<li class="current"><i>|</i><span>`)[1].split(`</span>`)[0];
+      localStorage.setItem("now-list", `${nowUser}-${arr}`);
+    }
+    if (localStorage.getItem("now-list") != null) {
+      document.querySelector(".nowlist-title").innerHTML = localStorage.getItem("now-list").replace(`${nowUser}-`, "");
+    }
   }
 }
 
@@ -181,6 +195,7 @@ signInBtn.onclick = () => {
             li.innerHTML = `${zhanghao.value}<span>注销</span>`;
             document.querySelector(".zhanghu").appendChild(li);
             localStorage.setItem("sign-users", document.querySelector(".zhanghu").innerHTML);
+            changeList();
           } // 登录失败时
           else {
             setMes("密码错误！");
@@ -223,3 +238,103 @@ signInBtn.onclick = () => {
     }
   }
 };
+
+// 清单切换
+if (localStorage.getItem("now-list") != null) {
+  document.querySelector(".nowlist-title").innerHTML = localStorage.getItem("now-list").replace(`${localStorage.getItem("now-user")}-`, "");
+} else {
+  document.querySelector(".nowlist-title").innerHTML = "";
+}
+lists.innerHTML = localStorage.getItem(`${localStorage.getItem("now-user")}-lists`) || "";
+document.oncontextmenu = function (e) {
+  e.preventDefault();
+};
+lists.addEventListener("mousedown", (e) => {
+  if (e.target.nodeName.toLowerCase() != "ul") {
+    if (e.target.nodeName.toLowerCase() != "input") {
+      // 左键
+      if (e.button == 0) {
+        let len = lists.children.length;
+        for (let i = 0; i < len; i++) {
+          lists.children[i].className = "";
+        }
+        if (e.target.nodeName.toLowerCase() == "li") {
+          e.target.className = "current";
+          e.target.children[2].style.display = "none";
+          document.querySelector(".nowlist-title").innerHTML = e.target.innerHTML.replace(`<i>|</i><span>`, "").replace(`</span><em>删除</em>`, "");
+        } else if (e.target.nodeName.toLowerCase() == "em") {
+          let temp = e.target.parentNode.parentNode;
+          temp.removeChild(e.target.parentNode);
+          if (temp.children.length > 0) {
+            temp.children[0].className = "current";
+            console.log(temp.children[0]);
+            document.querySelector(".nowlist-title").innerHTML = temp.children[0].innerHTML.replace(`<i>|</i><span>`, "").replace(`</span><em>删除</em>`, "");
+          } else {
+            document.querySelector(".nowlist-title").innerHTML = "";
+          }
+        } else {
+          e.target.parentNode.className = "current";
+          e.target.parentNode.children[2].style.display = "none";
+          document.querySelector(".nowlist-title").innerHTML = e.target.parentNode.innerHTML.replace(`<i>|</i><span>`, "").replace(`</span><em>删除</em>`, "");
+        }
+        // 设置目前的清单以及所在的账号
+        localStorage.setItem(`${localStorage.getItem("now-user")}-lists`, lists.innerHTML);
+        localStorage.setItem("now-list", `${userBtn.innerHTML}-${document.querySelector(".nowlist-title").innerHTML.replace(`<em style="display: none;">删除</em>`, "")}`)
+
+      }
+      // 右键
+      if (e.button == 2) {
+        if (e.target.nodeName.toLowerCase() == "li") {
+          e.target.children[2].style.display = "block";
+        } else {
+          e.target.parentNode.children[2].style.display = "block";
+        }
+      }
+    }
+  }
+})
+
+// 创建清单部分
+document.querySelector(".create-list").onclick = () => {
+  if (localStorage.getItem("now-user") != null) {
+    let li = document.createElement("li");
+    li.innerHTML = `<input type="text">`;
+    lists.appendChild(li);
+    let temp = lists.children[lists.children.length - 1].children[0];
+    temp.focus();
+    if (temp.focus()) {
+      window.event.stopPropagation();
+    }
+    temp.onblur = () => {
+      if (temp.value == "") {
+        alert("请输入清单名称");
+        lists.removeChild(lists.children[lists.children.length - 1]);
+      } else {
+        lists.children[lists.children.length - 1].innerHTML = `<i>|</i><span>${temp.value}</span><em>删除</em>`;
+        localStorage.setItem(`${localStorage.getItem("now-user")}-lists`, lists.innerHTML)
+        if (lists.children.length == 1) {
+          lists.children[0].className = "current";
+        }
+      }
+    }
+  } else {
+    alert("请先登录");
+    document.querySelector(".add-user").click();
+  }
+}
+
+
+
+
+
+// 设置清单内容部分
+let nowListCon = document.querySelector(".nowlist-con");
+nowListCon.onclick = (e) => {
+  if (e.target.children[0].checked == true) {
+    e.target.innerHTML = `<input type="checkbox">${e.target.innerHTML.replace(`<input type="checkbox"><del>`, "").replace(`</del>`, "")}`;
+    e.target.children[0].checked = false;
+  } else {
+    e.target.innerHTML = `<input type="checkbox"><del>${e.target.innerHTML.replace(`<input type="checkbox">`, "")}</del>`;
+    e.target.children[0].checked = true;
+  }
+}
