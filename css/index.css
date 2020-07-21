@@ -319,6 +319,14 @@ input::-webkit-input-placeholder {
   color: #788CDE;
 }
 
+.main .list-content .process-bar {
+  position: absolute;
+  left: 0;
+  height: 5px;
+  background-color:#296097;
+  transition: all 1s;
+}
+
 .main .list-content .nowlist-con {
   margin-top: 10px;
   width: 100%;
@@ -452,6 +460,7 @@ input::-webkit-input-placeholder {
   background-color: #93B5D7;
   border-radius: 20px;
 }
+
 .delete-item {
   display: none;
   position: absolute;
@@ -461,6 +470,7 @@ input::-webkit-input-placeholder {
   text-align: center;
   line-height: 30px;
 }
+
 .delete-item:hover {
   background-color: red;
 }

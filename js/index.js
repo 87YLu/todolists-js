@@ -143,6 +143,23 @@ const loadItems = () => {
           </div>`;
   }
 }
+
+
+// 进度条
+const proecssBar = () => {
+  let process = 0;
+  if ((document.querySelector(".nowlist-con").children[1].children[1].children.length +
+      document.querySelector(".nowlist-con").children[0].children.length) != 0) {
+    process = document.querySelector(".nowlist-con").children[1].children[1].children.length /
+      (document.querySelector(".nowlist-con").children[1].children[1].children.length +
+        document.querySelector(".nowlist-con").children[0].children.length) * 100;
+  }
+  document.querySelector(".process-bar").style.width = `${process}%`;
+  localStorage.setItem("process", process);
+}
+// 初始化进度条
+document.querySelector(".process-bar").style.width = `${localStorage.getItem("process")}%` || 0;
+
 // 恢复点击功能
 const resetListItems = () => {
   let nowListCon = document.querySelector(".nowlist-con");
@@ -156,6 +173,7 @@ const resetListItems = () => {
       }
       nowListCon.children[1].style.display = "block";
       localStorage.setItem(localStorage.getItem("now-list"), nowListCon.innerHTML);
+      proecssBar();
     }
   });
 
@@ -171,6 +189,7 @@ const resetListItems = () => {
         nowListCon.children[1].style.display = "none";
       }
       localStorage.setItem(localStorage.getItem("now-list"), nowListCon.innerHTML);
+      proecssBar();
     }
   });
 
@@ -233,6 +252,7 @@ document.querySelector(".zhanghu").onclick = (e) => {
     }
     loadItems();
     resetListItems();
+    proecssBar();
   }
 }
 
@@ -284,6 +304,7 @@ signInBtn.onclick = () => {
             }
             // 加载当前内容
             loadItems();
+            proecssBar();
           } // 登录失败时
           else {
             setMes("密码错误！");
@@ -385,6 +406,7 @@ lists.addEventListener("mousedown", (e) => {
         localStorage.setItem("now-list", `${userBtn.innerHTML}-${nowListTitle.innerHTML.replace(`<em style="display: none;">删除</em>`, "")}`)
         loadItems();
         resetListItems();
+        proecssBar();
       }
       // 右键
       if (e.button == 2) {
@@ -493,8 +515,8 @@ resetListItems();
 
 // 用户体验优化
 document.documentElement.onkeydown = (e) => {
-  e.preventDefault();
   if (e.keyCode == 13) {
+    e.preventDefault();
     if (document.querySelector(".logon-sign").style.display == "flex") {
       signInBtn.click();
     } else {
@@ -525,7 +547,9 @@ nowListCon.addEventListener("contextmenu", (e) => {
     }
     if (document.querySelector(".done").children[1].children.length == 0) {
       document.querySelector(".done").style.display = "none";
+      // document.querySelector(".process-bar").style.width = 0;
     }
     localStorage.setItem(localStorage.getItem("now-list"), nowListCon.innerHTML);
+    proecssBar();
   }
-})
+});
