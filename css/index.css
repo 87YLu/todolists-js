@@ -61,6 +61,7 @@ body {
   left: 20px;
   font-size: 23px;
 }
+
 .scalable .lists li em {
   display: none;
   position: absolute;
@@ -74,19 +75,22 @@ body {
   background-color: darkred;
   color: #eee;
 }
+
 .scalable .lists li em:hover {
   background-color: red;
 }
+
 .scalable .lists li span {
   position: absolute;
   top: 50%;
   left: 40px;
   transform: translateY(-50%);
 }
+
 .scalable .lists li input {
   box-sizing: border-box;
   padding-left: 20px;
-    width: 100%;
+  width: 100%;
   height: 100%;
   outline: none;
   border: none;
@@ -94,6 +98,7 @@ body {
   font-size: 25px;
   background-color: transparent;
 }
+
 .scalable .lists .current {
   background-color: #27282D;
 }
@@ -333,6 +338,8 @@ input::-webkit-input-placeholder {
 }
 
 .main .list-content .nowlist-con li {
+  display: flex;
+  align-items: center;
   margin: 5px 0;
   width: 100%;
   height: 50px;
@@ -341,12 +348,57 @@ input::-webkit-input-placeholder {
   background-color: #242426;
 }
 
+.list-content .nowlist-con .undone li span,
+.list-content .nowlist-con .done li span {
+  display: block;
+  margin-right: 20px;
+  width: 30px;
+  height: 30px;
+  background: url(../images/circle.png) no-repeat;
+  background-size: 100% 100%;
+}
+
+.list-content .nowlist-con .done li span {
+  background: url(../images/circle-done.png) no-repeat;
+  background-size: 100% 100%;
+}
+
 .main .list-content .nowlist-con li:hover {
   background-color: #292929;
 }
-.main .list-content .nowlist-con li input {
-  /* display: none; */
+
+.list-content .undone li:hover span {
+  background: url(../images/circle-hover.png) no-repeat;
+  background-size: 100% 100%;
 }
+.list-content .done {
+  display: none;
+}
+.list-content .done span {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 12px 0;
+  width: 80px;
+  height: 30px;
+  background-color: #252627;
+  font-family: "icomoon";
+  color: #788CDE;
+  border-radius: 3px;
+}
+.list-content .done span:hover {
+  background-color: #2D2E2F;
+}
+.list-content .done li {
+  text-decoration: line-through;
+}
+
+
+
+
+
+
+
 .main .list-content .nowlist-con li,
 .main .list-content .add-item {
   box-sizing: border-box;

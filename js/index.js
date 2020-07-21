@@ -1,14 +1,14 @@
 // live2d
-// L2Dwidget.init({
-//   "display": {
-//     "superSample": 2,
-//     "width": 150,
-//     "height": 300,
-//     "position": "right",
-//     "hOffset": 0,
-//     "vOffset": 0
-//   }
-// });
+L2Dwidget.init({
+  "display": {
+    "superSample": 2,
+    "width": 100,
+    "height": 200,
+    "position": "right",
+    "hOffset": 0,
+    "vOffset": 0
+  }
+});
 
 // 左边栏移动
 let startX, startWidth;
@@ -127,10 +127,66 @@ const setNameArr = () => {
 // 更换清单内容函数
 let lists = document.querySelector(".lists");
 let nowListTitle = document.querySelector(".nowlist-title");
-
 const changeList = () => {
-  lists.innerHTML = localStorage.getItem(`${localStorage.getItem("now-user")}-lists`) || "";
+  lists.innerHTML = localStorage.getItem(`${localStorage.getItem("now-user")}:lists`) || "";
 }
+
+// 加载清单内容
+const loadItems = () => {
+  if (localStorage.getItem(localStorage.getItem("now-list")) != null) {
+    document.querySelector(".nowlist-con").innerHTML = localStorage.getItem(localStorage.getItem("now-list"))
+  } else {
+    document.querySelector(".nowlist-con").innerHTML = `<ul class="undone"></ul>
+          <div class="done">
+            <span> 已完成</span>
+            <ul></ul>
+          </div>`;
+  }
+}
+// 恢复点击功能
+const resetListItems = () => {
+  let nowListCon = document.querySelector(".nowlist-con");
+  // 点击未完成项时
+  nowListCon.children[0].addEventListener("click", (e) => {
+    if (e.target.nodeName.toLowerCase() != "ul") {
+      if (e.target.nodeName.toLowerCase() == "li") {
+        nowListCon.children[1].children[1].appendChild(e.target);
+      } else {
+        nowListCon.children[1].children[1].appendChild(e.target.parentNode);
+      }
+      nowListCon.children[1].style.display = "block";
+      localStorage.setItem(localStorage.getItem("now-list"), nowListCon.innerHTML);
+    }
+  });
+
+  // 点击完成项时
+  nowListCon.children[1].children[1].addEventListener("click", (e) => {
+    if (e.target.nodeName.toLowerCase() != "ul") {
+      if (e.target.nodeName.toLowerCase() == "li") {
+        nowListCon.children[0].appendChild(e.target);
+      } else {
+        nowListCon.children[0].appendChild(e.target.parentNode);
+      }
+      if (nowListCon.children[1].children[1].children.length == 0) {
+        nowListCon.children[1].style.display = "none";
+      }
+      localStorage.setItem(localStorage.getItem("now-list"), nowListCon.innerHTML);
+    }
+  });
+
+  // 隐藏显示已完成
+  nowListCon.children[1].children[0].addEventListener("click", () => {
+    if (nowListCon.children[1].children[0].innerHTML == " 已完成") {
+      nowListCon.children[1].children[0].innerHTML = " 已完成";
+      nowListCon.children[1].children[1].style.display = "none";
+    } else {
+      nowListCon.children[1].children[0].innerHTML = " 已完成"
+      nowListCon.children[1].children[1].style.display = "block";
+    }
+    localStorage.setItem(localStorage.getItem("now-list"), nowListCon.innerHTML);
+  });
+}
+
 // 注销功能和用户切换功能
 document.querySelector(".zhanghu").onclick = (e) => {
   // 注销功能
@@ -141,10 +197,16 @@ document.querySelector(".zhanghu").onclick = (e) => {
     if (e.target.parentNode.innerHTML.replace("<span>注销</span>", "") == localStorage.getItem("now-user")) {
       userBtn.innerHTML = "未登录";
       localStorage.removeItem("now-user");
+      document.querySelector(".nowlist-con").innerHTML = `<ul class="undone"></ul>
+          <div class="done">
+            <span> 已完成</span>
+            <ul></ul>
+          </div>`;
+      lists.innerHTML = "";
+      localStorage.setItem("now-list", "");
+      nowListTitle.innerHTML = "";
     }
-    lists.innerHTML = "";
-    localStorage.setItem("now-list", "");
-    nowListTitle.innerHTML = "";
+
   }
   // 用户切换功能
   if (e.target.nodeName.toLowerCase() == "li") {
@@ -154,14 +216,14 @@ document.querySelector(".zhanghu").onclick = (e) => {
     userControl.style.display = "none";
     changeList();
     // 更新now-list
-    if (localStorage.getItem(`${nowUser}-lists`) != null && localStorage.getItem(`${nowUser}-lists`) != "") {
-      let arr = localStorage.getItem(`${nowUser}-lists`).split(`<li class="current"><i>|</i><span>`)[1].split(`</span>`)[0];
+    if (localStorage.getItem(`${nowUser}:lists`) != null && localStorage.getItem(`${nowUser}:lists`) != "") {
+      let arr = localStorage.getItem(`${nowUser}:lists`).split(`<li class="current"><i>|</i><span>`)[1].split(`</span>`)[0];
       localStorage.setItem("now-list", `${nowUser}-${arr}`);
     } else {
       localStorage.setItem("now-list", ``);
     }
     // 去除now-list
-    if (localStorage.getItem(`${nowUser}-lists`) == "") {
+    if (localStorage.getItem(`${nowUser}:lists`) == "") {
       localStorage.removeItem("now-list")
     }
     if (localStorage.getItem("now-list") != null) {
@@ -169,6 +231,8 @@ document.querySelector(".zhanghu").onclick = (e) => {
     } else {
       nowListTitle.innerHTML = "";
     }
+    loadItems();
+    resetListItems();
   }
 }
 
@@ -211,9 +275,13 @@ signInBtn.onclick = () => {
             localStorage.setItem("sign-users", document.querySelector(".zhanghu").innerHTML);
             changeList();
             // 获取登陆时的当前清单
-            let arr = localStorage.getItem(`${zhanghao.value}-lists`).split(`<li class="current"><i>|</i><span>`)[1].split("</span>")[0];
-            localStorage.setItem("now-list", `${zhanghao.value}-${arr}`);
-            nowListTitle.innerHTML = arr;
+            if (localStorage.getItem(`${zhanghao.value}:lists`) != null) {
+              let arr = localStorage.getItem(`${zhanghao.value}:lists`).split(`<li class="current"><i>|</i><span>`)[1].split("</span>")[0];
+              localStorage.setItem("now-list", `${zhanghao.value}-${arr}`);
+              nowListTitle.innerHTML = arr;
+            }
+            // 加载当前内容
+            loadItems();
           } // 登录失败时
           else {
             setMes("密码错误！");
@@ -263,7 +331,8 @@ if (localStorage.getItem("now-list") != null && localStorage.getItem("now-list")
 } else {
   nowListTitle.innerHTML = "";
 }
-lists.innerHTML = localStorage.getItem(`${localStorage.getItem("now-user")}-lists`) || "";
+lists.innerHTML = localStorage.getItem(`${localStorage.getItem("now-user")}:lists`) || "";
+
 // 阻止右键行为
 document.oncontextmenu = function (e) {
   e.preventDefault();
@@ -277,6 +346,7 @@ const hideDelete = () => {
     }
   }
 }
+
 
 lists.addEventListener("mousedown", (e) => {
   if (e.target.nodeName.toLowerCase() != "ul") {
@@ -306,9 +376,10 @@ lists.addEventListener("mousedown", (e) => {
           nowListTitle.innerHTML = e.target.parentNode.innerHTML.replace(`<i>|</i><span>`, "").replace(`</span><em>删除</em>`, "");
         }
         // 设置目前的清单以及所在的账号
-        localStorage.setItem(`${localStorage.getItem("now-user")}-lists`, lists.innerHTML);
+        localStorage.setItem(`${localStorage.getItem("now-user")}:lists`, lists.innerHTML);
         localStorage.setItem("now-list", `${userBtn.innerHTML}-${nowListTitle.innerHTML.replace(`<em style="display: none;">删除</em>`, "")}`)
-
+        loadItems();
+        resetListItems();
       }
       // 右键
       if (e.button == 2) {
@@ -344,6 +415,8 @@ document.querySelector(".create-list").onclick = (e) => {
       if (temp.value.trim() == "") {
         alert("请输入清单名称");
         lists.removeChild(lists.children[lists.children.length - 1]);
+      } else if (temp.value.trim().length > 15) {
+        alert("清单名称过长")
       } else {
         if (setUserListsArr().length > 8) {
           alert("清单数量到达上限");
@@ -358,7 +431,7 @@ document.querySelector(".create-list").onclick = (e) => {
           }
           lists.children[lists.children.length - 1].className = "current";
           localStorage.setItem("now-list", `${localStorage.getItem("now-user")}-${temp.value.trim()}`);
-          localStorage.setItem(`${localStorage.getItem("now-user")}-lists`, lists.innerHTML);
+          localStorage.setItem(`${localStorage.getItem("now-user")}:lists`, lists.innerHTML);
           nowListTitle.innerHTML = localStorage.getItem("now-list").replace(`${localStorage.getItem("now-user")}-`, "");
         }
       }
@@ -372,22 +445,29 @@ document.querySelector(".create-list").onclick = (e) => {
 // 添加清单项
 let addItem = document.querySelector(".add-item");
 let nowListCon = document.querySelector(".nowlist-con");
-
+// 清单项初始化
+loadItems();
 addItem.onclick = () => {
-  addItem.innerHTML = `<span>+</span><input type="text">`;
-  addItem.children[1].focus();
-  addItem.style.backgroundColor = "#282829";
-
-
-  addItem.children[1].onblur = () => {
-    if (addItem.children[1].value == "") {
-      alert("请输入内容");
-    } else {
-      let li = document.createElement("li");
-      li.innerHTML = `<input type="checkbox">${addItem.children[1].value}`;
-      nowListCon.appendChild(li);
+  if (localStorage.getItem("now-user") == null) {
+    alert("请先登录");
+    document.querySelector(".add-user").click();
+  } else {
+    addItem.innerHTML = `<span>+</span><input type="text">`;
+    addItem.children[1].focus();
+    addItem.style.backgroundColor = "#282829";
+    addItem.children[1].onblur = () => {
+      if (addItem.children[1].value == "") {
+        alert("请输入内容");
+      } else {
+        let li = document.createElement("li");
+        li.innerHTML = `<span></span>${addItem.children[1].value}`;
+        nowListCon.children[0].appendChild(li);
+        localStorage.setItem(localStorage.getItem("now-list"), nowListCon.innerHTML);
+      }
+      addItem.innerHTML = `<span>+</span>添加任务`;
+      addItem.style.backgroundColor = "##1F1F20";
     }
-    addItem.innerHTML = `<span>+</span>添加任务`;
-    addItem.style.backgroundColor = "##1F1F20";
   }
+
 }
+resetListItems();
