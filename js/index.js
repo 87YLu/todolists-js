@@ -1,14 +1,14 @@
 // live2d
-// L2Dwidget.init({
-//   "display": {
-//     "superSample": 2,
-//     "width": 100,
-//     "height": 200,
-//     "position": "right",
-//     "hOffset": 0,
-//     "vOffset": 0
-//   }
-// });
+L2Dwidget.init({
+  "display": {
+    "superSample": 2,
+    "width": 100,
+    "height": 200,
+    "position": "right",
+    "hOffset": 0,
+    "vOffset": 0
+  }
+});
 
 // 左边栏移动
 let startX, startWidth;
@@ -138,7 +138,7 @@ const loadItems = () => {
   } else {
     document.querySelector(".nowlist-con").innerHTML = `<ul class="undone"></ul>
           <div class="done">
-            <span> 已完成</span>
+            <em> 已完成</em>
             <ul></ul>
           </div>`;
   }
@@ -218,7 +218,7 @@ document.querySelector(".zhanghu").onclick = (e) => {
       localStorage.removeItem("now-user");
       document.querySelector(".nowlist-con").innerHTML = `<ul class="undone"></ul>
           <div class="done">
-            <span> 已完成</span>
+            <em> 已完成</em>
             <ul></ul>
           </div>`;
       lists.innerHTML = "";
@@ -301,10 +301,20 @@ signInBtn.onclick = () => {
               let arr = localStorage.getItem(`${zhanghao.value}:lists`).split(`<li class="current"><i>|</i><span>`)[1].split("</span>")[0];
               localStorage.setItem("now-list", `${zhanghao.value}-${arr}`);
               nowListTitle.innerHTML = arr;
+              loadItems();
+            } else {
+              nowListTitle.innerHTML = "";
+              document.querySelector(".nowlist-con").innerHTML = `<ul class="undone"></ul>
+              <div class="done">
+                <em> 已完成</em>
+                <ul></ul>
+              </div>`;
+              localStorage.setItem("now-list", "");
             }
             // 加载当前内容
-            loadItems();
+
             proecssBar();
+            resetListItems();
           } // 登录失败时
           else {
             setMes("密码错误！");
@@ -363,9 +373,11 @@ document.oncontextmenu = function (e) {
 
 // 隐藏删除键
 const hideDelete = () => {
-  if (lists.children.length > 0) {
-    for (let i = 0, len = lists.children.length; i < len; i++) {
-      lists.children[i].children[2].style.display = "none";
+  if (lists.children[0].innerHTML != `<input type="text">`) {
+    if (lists.children.length > 0) {
+      for (let i = 0, len = lists.children.length; i < len; i++) {
+        lists.children[i].children[2].style.display = "none";
+      }
     }
   }
 }
@@ -374,9 +386,6 @@ const hideDelete = () => {
 lists.addEventListener("mousedown", (e) => {
   if (e.target.nodeName.toLowerCase() != "ul") {
     if (e.target.nodeName.toLowerCase() != "input") {
-      document.addEventListener('click', () => {
-        hideDelete();
-      });
       // 左键
       if (e.button == 0) {
         let len = lists.children.length;
@@ -439,8 +448,7 @@ const showErrorMes = (value) => {
 }
 
 // 创建清单部分
-document.querySelector(".create-list").onclick = (e) => {
-  e.stopPropagation();
+document.querySelector(".create-list").onclick = () => {
   if (localStorage.getItem("now-user") != null) {
     let li = document.createElement("li");
     li.innerHTML = `<input type="text">`;
@@ -460,7 +468,9 @@ document.querySelector(".create-list").onclick = (e) => {
         } else if (setUserListsArr().includes(temp.value.trim())) {
           showErrorMes("请勿重复命名清单");
           lists.removeChild(lists.children[lists.children.length - 1]);
-        } else {
+        }
+        // 创建成功
+        else {
           lists.children[lists.children.length - 1].innerHTML = `<i>|</i><span>${temp.value.trim()}</span><em>删除</em>`;
           for (let i = 0, len = lists.children.length; i < len; i++) {
             lists.children[i].className = "";
@@ -469,6 +479,8 @@ document.querySelector(".create-list").onclick = (e) => {
           localStorage.setItem("now-list", `${localStorage.getItem("now-user")}-${temp.value.trim()}`);
           localStorage.setItem(`${localStorage.getItem("now-user")}:lists`, lists.innerHTML);
           nowListTitle.innerHTML = localStorage.getItem("now-list").replace(`${localStorage.getItem("now-user")}-`, "");
+          loadItems();
+          resetListItems();
         }
       }
     }
@@ -480,17 +492,21 @@ document.querySelector(".create-list").onclick = (e) => {
   }
 }
 
-// 添加清单项
+
 let addItem = document.querySelector(".add-item");
 let nowListCon = document.querySelector(".nowlist-con");
 // 清单项初始化
 loadItems();
+
+// 添加清单项
 addItem.onclick = () => {
   if (localStorage.getItem("now-user") == null) {
     showErrorMes("请先登录");
     setTimeout(() => {
       document.querySelector(".add-user").click();
     }, 1300);
+  } else if (document.querySelector(".nowlist-title").innerHTML == "") {
+    showErrorMes("请先创建清单");
   } else {
     if (addItem.innerHTML != `<span>+</span><input type="text">`) {
       addItem.innerHTML = `<span>+</span><input type="text">`;
@@ -504,6 +520,7 @@ addItem.onclick = () => {
           li.innerHTML = `<span></span>${addItem.children[1].value}`;
           nowListCon.children[0].appendChild(li);
           localStorage.setItem(localStorage.getItem("now-list"), nowListCon.innerHTML);
+          proecssBar();
         }
         addItem.innerHTML = `<span>+</span>添加任务`;
         addItem.style.backgroundColor = "##1F1F20";
@@ -530,26 +547,28 @@ document.documentElement.onkeydown = (e) => {
 
 // 右键
 nowListCon.addEventListener("contextmenu", (e) => {
-  let deleteItem = document.querySelector(".delete-item");
-  let x = e.clientX;
-  let y = e.clientY;
-  deleteItem.style.display = 'block';
-  deleteItem.style.left = x + 'px';
-  deleteItem.style.top = y + 'px';
-  document.addEventListener('click', () => {
-    deleteItem.style.display = 'none';
-  });
-  deleteItem.onclick = () => {
-    if (e.target.nodeName.toLowerCase() == "li") {
-      e.target.parentNode.removeChild(e.target);
-    } else {
-      e.target.parentNode.parentNode.removeChild(e.target.parentNode);
+  if (e.target.nodeName.toLowerCase() == "li" || e.target.nodeName.toLowerCase() == "span") {
+    let deleteItem = document.querySelector(".delete-item");
+    let x = e.clientX;
+    let y = e.clientY;
+    deleteItem.style.display = 'block';
+    deleteItem.style.left = x + 'px';
+    deleteItem.style.top = y + 'px';
+    document.addEventListener('click', () => {
+      deleteItem.style.display = 'none';
+    });
+    deleteItem.onclick = () => {
+      console.log(e.target)
+      if (e.target.nodeName.toLowerCase() == "li") {
+        e.target.parentNode.removeChild(e.target);
+      } else {
+        e.target.parentNode.parentNode.removeChild(e.target.parentNode);
+      }
+      if (document.querySelector(".done").children[1].children.length == 0) {
+        document.querySelector(".done").style.display = "none";
+      }
+      localStorage.setItem(localStorage.getItem("now-list"), nowListCon.innerHTML);
+      proecssBar();
     }
-    if (document.querySelector(".done").children[1].children.length == 0) {
-      document.querySelector(".done").style.display = "none";
-      // document.querySelector(".process-bar").style.width = 0;
-    }
-    localStorage.setItem(localStorage.getItem("now-list"), nowListCon.innerHTML);
-    proecssBar();
   }
 });

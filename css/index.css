@@ -384,7 +384,7 @@ input::-webkit-input-placeholder {
   display: none;
 }
 
-.list-content .done span {
+.list-content .done em {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -397,7 +397,7 @@ input::-webkit-input-placeholder {
   border-radius: 3px;
 }
 
-.list-content .done span:hover {
+.list-content .done em:hover {
   background-color: #2D2E2F;
 }
 
