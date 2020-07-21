@@ -1,14 +1,14 @@
 // live2d
-L2Dwidget.init({
-  "display": {
-    "superSample": 2,
-    "width": 100,
-    "height": 200,
-    "position": "right",
-    "hOffset": 0,
-    "vOffset": 0
-  }
-});
+// L2Dwidget.init({
+//   "display": {
+//     "superSample": 2,
+//     "width": 100,
+//     "height": 200,
+//     "position": "right",
+//     "hOffset": 0,
+//     "vOffset": 0
+//   }
+// });
 
 // 左边栏移动
 let startX, startWidth;
@@ -262,6 +262,8 @@ signInBtn.onclick = () => {
         let index = nameArr.indexOf(zhanghao.value);
         if (index == -1) {
           setMes("账号不存在！");
+        } else if (document.querySelector(".zhanghu").innerText.split("注销").includes(zhanghao.value)) {
+          setMes("账号已经登陆！")
         } else {
           let arr = setLocalArr();
           // 登录成功时
@@ -275,7 +277,7 @@ signInBtn.onclick = () => {
             localStorage.setItem("sign-users", document.querySelector(".zhanghu").innerHTML);
             changeList();
             // 获取登陆时的当前清单
-            if (localStorage.getItem(`${zhanghao.value}:lists`) != null) {
+            if (localStorage.getItem(`${zhanghao.value}:lists`) != null && localStorage.getItem(`${zhanghao.value}:lists`) != "") {
               let arr = localStorage.getItem(`${zhanghao.value}:lists`).split(`<li class="current"><i>|</i><span>`)[1].split("</span>")[0];
               localStorage.setItem("now-list", `${zhanghao.value}-${arr}`);
               nowListTitle.innerHTML = arr;
@@ -351,6 +353,9 @@ const hideDelete = () => {
 lists.addEventListener("mousedown", (e) => {
   if (e.target.nodeName.toLowerCase() != "ul") {
     if (e.target.nodeName.toLowerCase() != "input") {
+      document.addEventListener('click', () => {
+        hideDelete();
+      });
       // 左键
       if (e.button == 0) {
         let len = lists.children.length;
@@ -402,6 +407,15 @@ const setUserListsArr = () => {
   return arr;
 }
 
+const showErrorMes = (value) => {
+  let errorMes = document.querySelector(".error-mes");
+  errorMes.style.display = "flex";
+  errorMes.innerHTML = value;
+  setTimeout(() => {
+    errorMes.style.display = "none";
+  }, 1200)
+}
+
 // 创建清单部分
 document.querySelector(".create-list").onclick = (e) => {
   e.stopPropagation();
@@ -413,16 +427,16 @@ document.querySelector(".create-list").onclick = (e) => {
     temp.focus();
     temp.onblur = () => {
       if (temp.value.trim() == "") {
-        alert("请输入清单名称");
+        showErrorMes("请输入清单名称");
         lists.removeChild(lists.children[lists.children.length - 1]);
       } else if (temp.value.trim().length > 15) {
-        alert("清单名称过长")
+        showErrorMes("清单名称过长")
       } else {
         if (setUserListsArr().length > 8) {
-          alert("清单数量到达上限");
+          showErrorMes("清单数量到达上限");
           lists.removeChild(lists.children[lists.children.length - 1]);
         } else if (setUserListsArr().includes(temp.value.trim())) {
-          alert("请勿重复命名清单");
+          showErrorMes("请勿重复命名清单");
           lists.removeChild(lists.children[lists.children.length - 1]);
         } else {
           lists.children[lists.children.length - 1].innerHTML = `<i>|</i><span>${temp.value.trim()}</span><em>删除</em>`;
@@ -437,8 +451,10 @@ document.querySelector(".create-list").onclick = (e) => {
       }
     }
   } else {
-    alert("请先登录");
-    document.querySelector(".add-user").click();
+    showErrorMes("请先登录");
+    setTimeout(() => {
+      document.querySelector(".add-user").click();
+    }, 1300);
   }
 }
 
@@ -449,25 +465,67 @@ let nowListCon = document.querySelector(".nowlist-con");
 loadItems();
 addItem.onclick = () => {
   if (localStorage.getItem("now-user") == null) {
-    alert("请先登录");
-    document.querySelector(".add-user").click();
+    showErrorMes("请先登录");
+    setTimeout(() => {
+      document.querySelector(".add-user").click();
+    }, 1300);
   } else {
-    addItem.innerHTML = `<span>+</span><input type="text">`;
-    addItem.children[1].focus();
-    addItem.style.backgroundColor = "#282829";
-    addItem.children[1].onblur = () => {
-      if (addItem.children[1].value == "") {
-        alert("请输入内容");
-      } else {
-        let li = document.createElement("li");
-        li.innerHTML = `<span></span>${addItem.children[1].value}`;
-        nowListCon.children[0].appendChild(li);
-        localStorage.setItem(localStorage.getItem("now-list"), nowListCon.innerHTML);
+    if (addItem.innerHTML != `<span>+</span><input type="text">`) {
+      addItem.innerHTML = `<span>+</span><input type="text">`;
+      addItem.children[1].focus();
+      addItem.style.backgroundColor = "#282829";
+      addItem.children[1].onblur = () => {
+        if (addItem.children[1].value == "") {
+          showErrorMes("请输入内容");
+        } else {
+          let li = document.createElement("li");
+          li.innerHTML = `<span></span>${addItem.children[1].value}`;
+          nowListCon.children[0].appendChild(li);
+          localStorage.setItem(localStorage.getItem("now-list"), nowListCon.innerHTML);
+        }
+        addItem.innerHTML = `<span>+</span>添加任务`;
+        addItem.style.backgroundColor = "##1F1F20";
       }
-      addItem.innerHTML = `<span>+</span>添加任务`;
-      addItem.style.backgroundColor = "##1F1F20";
     }
   }
-
 }
 resetListItems();
+
+// 用户体验优化
+document.documentElement.onkeydown = (e) => {
+  e.preventDefault();
+  if (e.keyCode == 13) {
+    if (document.querySelector(".logon-sign").style.display == "flex") {
+      signInBtn.click();
+    } else {
+      let input = document.querySelectorAll("input");
+      for (let i = 0, len = input.length; i < len; i++) {
+        input[i].blur();
+      }
+    }
+  }
+}
+
+// 右键
+nowListCon.addEventListener("contextmenu", (e) => {
+  let deleteItem = document.querySelector(".delete-item");
+  let x = e.clientX;
+  let y = e.clientY;
+  deleteItem.style.display = 'block';
+  deleteItem.style.left = x + 'px';
+  deleteItem.style.top = y + 'px';
+  document.addEventListener('click', () => {
+    deleteItem.style.display = 'none';
+  });
+  deleteItem.onclick = () => {
+    if (e.target.nodeName.toLowerCase() == "li") {
+      e.target.parentNode.removeChild(e.target);
+    } else {
+      e.target.parentNode.parentNode.removeChild(e.target.parentNode);
+    }
+    if (document.querySelector(".done").children[1].children.length == 0) {
+      document.querySelector(".done").style.display = "none";
+    }
+    localStorage.setItem(localStorage.getItem("now-list"), nowListCon.innerHTML);
+  }
+})

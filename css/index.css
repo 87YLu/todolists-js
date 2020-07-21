@@ -371,9 +371,11 @@ input::-webkit-input-placeholder {
   background: url(../images/circle-hover.png) no-repeat;
   background-size: 100% 100%;
 }
+
 .list-content .done {
   display: none;
 }
+
 .list-content .done span {
   display: flex;
   justify-content: center;
@@ -386,18 +388,14 @@ input::-webkit-input-placeholder {
   color: #788CDE;
   border-radius: 3px;
 }
+
 .list-content .done span:hover {
   background-color: #2D2E2F;
 }
+
 .list-content .done li {
   text-decoration: line-through;
 }
-
-
-
-
-
-
 
 .main .list-content .nowlist-con li,
 .main .list-content .add-item {
@@ -438,4 +436,31 @@ input::-webkit-input-placeholder {
   color: #E1E1E1;
   font-size: 20px;
   font-weight: 300;
+}
+
+.error-mes {
+  display: none;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 300px;
+  height: 100px;
+  font-size: 25px;
+  background-color: #93B5D7;
+  border-radius: 20px;
+}
+.delete-item {
+  display: none;
+  position: absolute;
+  width: 80px;
+  height: 30px;
+  background-color: darkred;
+  text-align: center;
+  line-height: 30px;
+}
+.delete-item:hover {
+  background-color: red;
 }
